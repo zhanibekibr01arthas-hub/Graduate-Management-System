@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Студенты | АРМ Выпускники</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #1e293b, #0f172a) !important; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .stat-card { border-left: 5px solid #0d6efd; }
+        .table th { background-color: #f8fafc; color: #475569; font-weight: 600; }
+        .filter-box { background-color: #ffffff; border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark px-4 py-3 shadow-sm">
+        <a class="navbar-brand fw-bold" href="/index"><i class="fas fa-graduation-cap me-2 text-info"></i>АРМ Выпускники</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link active fw-semibold" href="/index"><i class="fas fa-users me-1"></i> Студенты</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/groups"><i class="fas fa-layer-group me-1"></i> Группы</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/programs"><i class="fas fa-book me-1"></i> Программы</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/diplomas"><i class="fas fa-scroll me-1"></i> Дипломы</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/employment"><i class="fas fa-briefcase me-1"></i> Трудоустройство</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/statistics"><i class="fas fa-chart-pie me-1"></i> Статистика</a></li>
+                {% if is_admin %}
+                <li class="nav-item"><a class="nav-link text-white-50" href="/audit"><i class="fas fa-shield-alt me-1"></i> Аудит</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/users"><i class="fas fa-user-cog me-1"></i> Пользователи</a></li>
+                {% endif %}
+            </ul>
+            <div class="d-flex align-items-center">
+                <span class="text-light me-3">
+    <a href="/profile" class="text-decoration-none text-light fw-semibold">
+        <i class="fas fa-user-circle me-1 text-info"></i> {{ name }}
+    </a>
+    {% if is_admin %}<span class="badge bg-danger ms-1">Администратор</span>{% else %}<span class="badge bg-secondary ms-1">Пользователь</span>{% endif %}
+</span>
+                <a href="/logout" class="btn btn-outline-light btn-sm px-3 rounded-pill">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Уведомления Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Статистические мини-карточки -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card p-4 stat-card">
+                    <div class="text-muted fw-semibold text-uppercase small">Всего студентов в базе</div>
+                    <h2 class="fw-bold text-dark mt-2 mb-0">{{ total_students }}</h2>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-4 stat-card" style="border-left-color: #198754;">
+                    <div class="text-muted fw-semibold text-uppercase small">Академических групп</div>
+                    <h2 class="fw-bold text-dark mt-2 mb-0">{{ total_groups }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Панель управления и Кнопки действий -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-dark m-0"><i class="fas fa-filter text-primary me-2"></i>Фильтрация и поиск</h4>
+            <div>
+                <a href="/export_excel/students" class="btn btn-outline-success me-2">
+                    <i class="fas fa-file-excel me-1"></i> Экспорт в Excel
+                </a>
+                {% if is_admin %}
+                <button type="button" class="btn btn-outline-dark me-2" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+                    <i class="fas fa-file-import me-1"></i> Импорт
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                    <i class="fas fa-user-plus me-1"></i> Добавить студента
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Сводный блок фильтрации -->
+        <div class="card p-4 mb-4 filter-box">
+            <form action="/index" method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold text-muted small">Поиск по ФИО / ИИН</label>
+                    <input type="text" name="q" class="form-control" placeholder="Введите имя или ИИН..." value="{{ search_query }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold text-muted small">Группа</label>
+                    <select name="group_id" class="form-select">
+                        <option value="">Все группы</option>
+                        {% for g in groups %}
+                            <option value="{{ g[0] }}" {% if group_filter == g[0]|string %}selected{% endif %}>{{ g[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold text-muted small">Форма обучения</label>
+                    <select name="study_form" class="form-select">
+                        <option value="">Все формы</option>
+                        <option value="Очная" {% if form_filter == 'Очная' %}selected{% endif %}>Очная</option>
+                        <option value="Заочная" {% if form_filter == 'Заочная' %}selected{% endif %}>Заочная</option>
+                        <option value="Вечерняя" {% if form_filter == 'Вечерняя' %}selected{% endif %}>Вечерняя</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold text-muted small">Статус диплома</label>
+                    <select name="diploma_status" class="form-select">
+                        <option value="">Все дипломы</option>
+                        <option value="honors" {% if diploma_filter == 'honors' %}selected{% endif %}>С отличием</option>
+                        <option value="standard" {% if diploma_filter == 'standard' %}selected{% endif %}>Обычный</option>
+                        <option value="none" {% if diploma_filter == 'none' %}selected{% endif %}>Не выдан</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold text-muted small">Трудоустройство</label>
+                    <select name="employment_status" class="form-select">
+                        <option value="">Все статусы</option>
+                        <option value="emp" {% if employment_filter == 'emp' %}selected{% endif %}>Трудоустроен</option>
+                        <option value="unemp" {% if employment_filter == 'unemp' %}selected{% endif %}>Не трудоустроен</option>
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100" title="Применить фильтр"><i class="fas fa-search"></i></button>
+                </div>
+                {% if search_query or group_filter or form_filter or diploma_filter or employment_filter %}
+                <div class="col-12 text-end mt-2">
+                    <a href="/index" class="btn btn-sm btn-link text-decoration-none text-danger"><i class="fas fa-times me-1"></i> Сбросить все фильтры</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Таблица студентов -->
+        <div class="card p-4">
+            <h5 class="fw-bold text-dark mb-3">Результаты поиска (Найдено: {{ students|length }})</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">№</th>
+                            <th>ФИО студента</th>
+                            <th>ИИН</th>
+                            <th>Форма</th>
+                            <th>Группа</th>
+                            <th>Статус диплома</th>
+                            <th>Трудоустройство</th>
+                            <th class="text-end" style="width: 150px;">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if students %}
+                            {% for s in students %}
+                            <tr>
+                                <td><span class="badge bg-secondary">#{{ loop.index }}</span></td>
+                                <td class="fw-semibold text-dark">{{ s[1] }} {{ s[2] }} {{ s[3] if s[3] else '' }}</td>
+                                <td class="text-danger font-monospace small">{{ s[4] }}</td>
+                                <td>{{ s[5] }}</td>
+                                <td><span class="badge bg-info text-dark">{{ s[6] }}</span></td>
+                                <td>
+                                    {% if s[9] == 'С отличием' %}
+                                        <span class="badge bg-danger"><i class="fas fa-award me-1"></i> С отличием</span>
+                                    {% elif s[9] == 'Обычный' %}
+                                        <span class="badge bg-success">Выдан</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Не выдан</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if s[10] == 'Трудоустроен' %}
+                                        <span class="badge bg-primary"><i class="fas fa-check me-1"></i> Трудоустроен</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark border">В поиске</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="/print_student/{{ s[0] }}" class="btn btn-sm btn-outline-secondary me-1" target="_blank" title="Печать справки">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                    <a href="/download_pdf/{{ s[0] }}" class="btn btn-sm btn-outline-danger me-1" target="_blank" title="Скачать PDF справку">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+                                    {% if is_admin %}
+                                    <a href="/edit_student/{{ s[0] }}" class="btn btn-sm btn-outline-warning me-1" title="Редактировать">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="/delete_student/{{ s[0] }}" method="POST" class="d-inline" onsubmit="return confirm('Вы уверены, что хотите удалить этого студента?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Удалить">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">Студенты по выбранным критериям не найдены</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if is_admin %}
+    <!-- Модальное окно добавления студента -->
+    <div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/add_student" method="POST">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="addStudentModalLabel"><i class="fas fa-user-plus me-2"></i>Добавить выпускника</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Фамилия</label>
+                            <input type="text" name="last_name" class="form-control" placeholder="Например: Иванов" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Имя</label>
+                            <input type="text" name="first_name" class="form-control" placeholder="Например: Иван" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Отчество (при наличии)</label>
+                            <input type="text" name="middle_name" class="form-control" placeholder="Например: Иванович">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">ИИН</label>
+                            <input type="text" name="iin" class="form-control" maxlength="12" minlength="12" pattern="\d{12}" title="ИИН должен состоять ровно из 12 цифр" placeholder="Введите 12 цифр ИИН" required>
+                            <div class="form-text">Строго 12 цифр по алгоритму РК.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Форма обучения</label>
+                            <select name="study_form" class="form-select" required>
+                                <option value="Очная">Очная</option>
+                                <option value="Заочная">Заочная</option>
+                                <option value="Вечерняя">Вечерняя</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Академическая группа</label>
+                            <select name="group_id" class="form-select" required>
+                                {% for g in groups %}
+                                    <option value="{{ g[0] }}">{{ g[1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно импорта из Excel -->
+    <div class="modal fade" id="importExcelModal" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/import_excel" method="POST" enctype="multipart/form-data">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title" id="importExcelModalLabel"><i class="fas fa-file-import me-2"></i>Импорт студентов из Excel</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Выберите файл (.xlsx)</label>
+                            <input type="file" name="excel_file" class="form-control" accept=".xlsx, .xls" required>
+                            <div class="form-text mt-2">Файл должен содержать столбцы: Фамилия, Имя, Отчество, ИИН, Форма обучения, ID группы.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-dark"><i class="fas fa-upload me-1"></i> Загрузить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

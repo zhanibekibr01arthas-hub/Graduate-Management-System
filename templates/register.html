@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация | АРМ Выпускники</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #0f172a, #1e293b); height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center">
+    <div class="card p-5" style="width: 420px;">
+        <div class="text-center mb-4">
+            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 60px; height: 60px;">
+                <i class="fas fa-user-plus fa-lg"></i>
+            </div>
+            <h3 class="fw-bold text-dark">Регистрация аккаунта</h3>
+            <p class="text-muted small">Создайте новую учетную запись в АРМ</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} p-2 small text-center">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-muted">ФИО (Полное имя)</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fas fa-id-card text-muted"></i></span>
+                    <input type="text" name="fullname" class="form-control" placeholder="Ибраш Жанибек" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-muted">Логин</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fas fa-user text-muted"></i></span>
+                    <input type="text" name="username" class="form-control" placeholder="zhanibek" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-muted">Пароль</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fas fa-key text-muted"></i></span>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success w-100 py-2 fw-semibold shadow-sm mb-3">Зарегистрироваться</button>
+            <div class="text-center">
+                <span class="text-muted small">Уже есть аккаунт?</span> <a href="/" class="text-decoration-none fw-semibold small">Войти</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

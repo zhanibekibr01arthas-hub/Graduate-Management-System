@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление пользователями | АРМ Выпускники</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #1e293b, #0f172a) !important; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .table th { background-color: #f8fafc; color: #475569; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark px-4 py-3 shadow-sm">
+        <a class="navbar-brand fw-bold" href="/index"><i class="fas fa-graduation-cap me-2 text-info"></i>АРМ Выпускники</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link text-white-50" href="/index"><i class="fas fa-users me-1"></i> Студенты</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/groups"><i class="fas fa-layer-group me-1"></i> Группы</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/programs"><i class="fas fa-book me-1"></i> Программы</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/diplomas"><i class="fas fa-scroll me-1"></i> Дипломы</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/employment"><i class="fas fa-briefcase me-1"></i> Трудоустройство</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/statistics"><i class="fas fa-chart-pie me-1"></i> Статистика</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/audit"><i class="fas fa-shield-alt me-1"></i> Аудит</a></li>
+                <li class="nav-item"><a class="nav-link active fw-semibold" href="/users"><i class="fas fa-user-cog me-1"></i> Пользователи</a></li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <span class="text-light me-3">
+                    <i class="fas fa-user-circle me-1 text-info"></i> {{ name }}
+                    <span class="badge bg-danger ms-1">Администратор</span>
+                </span>
+                <a href="/logout" class="btn btn-outline-light btn-sm px-3 rounded-pill">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Уведомления Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-dark m-0"><i class="fas fa-user-cog text-primary me-2"></i>Управление учетными записями пользователей</h3>
+        </div>
+
+        <div class="card p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">ID</th>
+                            <th>Логин</th>
+                            <th>Пароль</th>
+                            <th>ФИО пользователя</th>
+                            <th>Текущая роль</th>
+                            <th style="width: 280px;" class="text-end">Изменить роль / Удалить</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if users %}
+                            {% for u in users %}
+                            <tr>
+                                <td><span class="badge bg-secondary">#{{ u[0] }}</span></td>
+                                <td class="fw-semibold"><code class="text-primary">{{ u[1] }}</code></td>
+                                <td><code class="text-danger">{{ u[5] }}</code></td>
+                                <td>{{ u[2] }}</td>
+                                <td>
+                                    {% if 'admin' in u[3].lower() or 'админ' in u[3].lower() %}
+                                        <span class="badge bg-danger">{{ u[3] }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info text-dark">{{ u[3] }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <form action="/update_user_role/{{ u[0] }}" method="POST" class="d-inline-flex align-items-center">
+                                        <select name="role_id" class="form-select form-select-sm me-2" style="width: 140px;">
+                                            {% for r in roles %}
+                                            <option value="{{ r[0] }}" {% if r[0] == u[4] %}selected{% endif %}>{{ r[1] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary me-1" title="Сохранить роль"><i class="fas fa-check"></i></button>
+                                    </form>
+                                    <form action="/delete_user/{{ u[0] }}" method="POST" class="d-inline" onsubmit="return confirm('Вы действительно хотите удалить этого пользователя?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Удалить пользователя"><i class="fas fa-trash-alt"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Пользователи не найдены</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

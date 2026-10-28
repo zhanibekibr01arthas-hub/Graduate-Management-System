@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Образовательные программы | АРМ Выпускники</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #1e293b, #0f172a) !important; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .table th { background-color: #f8fafc; color: #475569; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark px-4 py-3 shadow-sm">
+        <a class="navbar-brand fw-bold" href="/index"><i class="fas fa-graduation-cap me-2 text-info"></i>АРМ Выпускники</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link text-white-50" href="/index"><i class="fas fa-users me-1"></i> Студенты</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/groups"><i class="fas fa-layer-group me-1"></i> Группы</a></li>
+                <li class="nav-item"><a class="nav-link active fw-semibold" href="/programs"><i class="fas fa-book me-1"></i> Программы</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/diplomas"><i class="fas fa-scroll me-1"></i> Дипломы</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/employment"><i class="fas fa-briefcase me-1"></i> Трудоустройство</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/statistics"><i class="fas fa-chart-pie me-1"></i> Статистика</a></li>
+                {% if is_admin %}
+                <li class="nav-item"><a class="nav-link text-white-50" href="/audit"><i class="fas fa-shield-alt me-1"></i> Аудит</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50" href="/users"><i class="fas fa-user-cog me-1"></i> Пользователи</a></li>
+                {% endif %}
+            </ul>
+            <div class="d-flex align-items-center">
+                <span class="text-light me-3">
+                    <a href="/profile" class="text-decoration-none text-light fw-semibold">
+                        <i class="fas fa-user-circle me-1 text-info"></i> {{ name }}
+                    </a>
+                    {% if is_admin %}<span class="badge bg-danger ms-1">Администратор</span>{% else %}<span class="badge bg-secondary ms-1">Пользователь</span>{% endif %}
+                </span>
+                <a href="/logout" class="btn btn-outline-light btn-sm px-3 rounded-pill">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Заголовок и поиск -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark m-0"><i class="fas fa-book text-primary me-2"></i>Образовательные программы</h3>
+            <a href="/export_excel/programs" class="btn btn-outline-success">
+                <i class="fas fa-file-excel me-1"></i> Экспорт в Excel
+            </a>
+        </div>
+
+        <div class="card p-4 mb-4">
+            <form action="/programs" method="GET" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="q" class="form-control" placeholder="Поиск по шифру или названию программы..." value="{{ search_query }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Найти</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Таблица программ -->
+        <div class="card p-4">
+            <h5 class="fw-bold text-dark mb-3">Список программ (Найдено: {{ programs|length }})</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">№</th>
+                            <th style="width: 150px;">Шифр программы</th>
+                            <th>Название образовательной программы</th>
+                            <th>Квалификация</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if programs %}
+                            {% for p in programs %}
+                            <tr>
+                                <td><span class="badge bg-secondary">#{{ loop.index }}</span></td>
+                                <td class="fw-bold text-primary font-monospace">{{ p[1] }}</td>
+                                <td class="fw-semibold text-dark">{{ p[2] }}</td>
+                                <td><span class="badge bg-info text-dark">{{ p[3] }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">Образовательные программы не найдены</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

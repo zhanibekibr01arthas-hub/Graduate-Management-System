@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Справка выпускника - {{ s[1] }} {{ s[2] }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8fafc; font-family: 'Times New Roman', Times, serif; }
+        .document-card {
+            background: #fff;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 50px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .header-title { text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .info-table td { padding: 10px 14px; font-size: 16px; }
+        .info-label { font-weight: bold; width: 35%; color: #334155; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .document-card { border: none; box-shadow: none; margin: 0; padding: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container text-center my-4 no-print">
+        <button onclick="window.print()" class="btn btn-primary px-4 me-2">
+            <i class="fas fa-print me-2"></i>Распечатать / Сохранить в PDF
+        </button>
+        <a href="/index" class="btn btn-outline-secondary px-4">
+            <i class="fas fa-arrow-left me-2"></i>Вернуться
+        </a>
+    </div>
+
+    <div class="document-card">
+        <div class="text-center mb-4">
+            <h5 class="fw-bold mb-1">АВТОМАТИЗИРОВАННАЯ ИНФОРМАЦИОННАЯ СИСТЕМА</h5>
+            <h6 class="text-muted mb-3">«УЧЕТ И МОНИТОРИНГ ВЫПУСКНИКОВ»</h6>
+            <hr class="border-2 border-dark opacity-75">
+            <h4 class="header-title mt-4 mb-3">СПРАВКА-КАРТОЧКА ВЫПУСКНИКА</h4>
+            <p class="text-muted small">Официальный документ об академических и карьерных достижениях</p>
+        </div>
+
+        <table class="table table-bordered info-table mt-4">
+            <tbody>
+                <tr>
+                    <td class="info-label">ФИО Выпускника:</td>
+                    <td><strong>{{ s[1] }} {{ s[2] }} {{ s[3] or '' }}</strong></td>
+                </tr>
+                <tr>
+                    <td class="info-label">ИИН:</td>
+                    <td><code>{{ s[4] }}</code></td>
+                </tr>
+                <tr>
+                    <td class="info-label">Академическая группа:</td>
+                    <td>{{ s[6] }}</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Форма обучения:</td>
+                    <td>{{ s[5] }}</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Номер диплома:</td>
+                    <td><code>{{ s[7] }}</code></td>
+                </tr>
+                <tr>
+                    <td class="info-label">Средний балл (GPA):</td>
+                    <td><strong>{{ s[8] }}</strong></td>
+                </tr>
+                <tr>
+                    <td class="info-label">Тип диплома:</td>
+                    <td><span class="badge bg-success">{{ s[9] }}</span></td>
+                </tr>
+                <tr>
+                    <td class="info-label">Трудоустройство:</td>
+                    <td>{{ s[10] }} {% if s[10] != 'Не трудоустроен' %}(Должность: <em>{{ s[11] }}</em>){% endif %}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="row mt-5 pt-4">
+            <div class="col-6">
+                <p class="mb-1">Ответственный оператор:</p>
+                <p>___________________ (Подпись)</p>
+            </div>
+            <div class="col-6 text-end">
+                <p class="mb-1">Дата формирования:</p>
+                <p><strong><script>document.write(new Date().toLocaleDateString('ru-RU'));</script></strong></p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
